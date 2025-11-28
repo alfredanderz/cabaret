@@ -1,8 +1,7 @@
-const CACHE_NAME = "cocktail-app-v1";
+const CACHE_NAME = "cocktail-app-v2";
 const APP_SHELL = [
-  "/",
-  "/index.html",
-  "cup.png",
+  "./",
+  "./index.html",
   "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css",
   "https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js",
 ];
@@ -48,7 +47,8 @@ self.addEventListener("fetch", (event) => {
               {
                 idDrink: "offline-1",
                 strDrink: "Sin Conexión a Internet",
-                strDrinkThumb: "cup.png",
+                strDrinkThumb:
+                  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea;stop-opacity:1'/%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='400' fill='url(%23grad)'/%3E%3Ccircle cx='200' cy='160' r='80' fill='%23fff' opacity='0.2'/%3E%3Crect x='160' y='220' width='80' height='120' rx='10' fill='%23fff' opacity='0.3'/%3E%3Cellipse cx='200' cy='200' rx='60' ry='70' fill='%23fff' opacity='0.15'/%3E%3Ctext x='200' y='370' font-family='Arial' font-size='24' fill='white' text-anchor='middle' font-weight='bold'%3EOFFLINE%3C/text%3E%3C/svg%3E",
                 strCategory: "Offline Mode",
                 strAlcoholic: "No disponible",
                 strGlass: "Vaso Virtual",
@@ -81,7 +81,7 @@ self.addEventListener("fetch", (event) => {
         })
         .catch(() => {
           if (request.mode === "navigate") {
-            return caches.match("/index.html");
+            return caches.match("./index.html");
           }
         })
     );
