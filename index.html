@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cocktail Finder - PWA</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <meta name="theme-color" content="#764ba2" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      }
+
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      .app-header {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem 0;
+        margin-bottom: 2rem;
+      }
+
+      .app-title {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800;
+        font-size: 2.5rem;
+        margin: 0;
+      }
+
+      .search-container {
+        max-width: 600px;
+        margin: 0 auto 3rem;
+      }
+
+      .search-box {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 50px;
+        padding: 0.5rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      .search-input {
+        border: none;
+        padding: 0.8rem 1.5rem;
+        font-size: 1.1rem;
+        border-radius: 50px;
+      }
+
+      .search-input:focus {
+        box-shadow: none;
+        outline: none;
+      }
+
+      .btn-search {
+        background: var(--secondary-gradient);
+        border: none;
+        border-radius: 50px;
+        padding: 0.8rem 2rem;
+        font-weight: 600;
+        color: white;
+        transition: transform 0.2s;
+      }
+
+      .btn-search:hover {
+        transform: scale(1.05);
+        color: white;
+      }
+
+      .cocktail-card {
+        background: white;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s, box-shadow 0.3s;
+        margin-bottom: 2rem;
+      }
+
+      .cocktail-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+      }
+
+      .cocktail-img {
+        height: 300px;
+        object-fit: cover;
+        width: 100%;
+        background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      }
+
+      .cocktail-body {
+        padding: 1.5rem;
+      }
+
+      .cocktail-title {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 1rem;
+      }
+
+      .badge-custom {
+        background: var(--secondary-gradient);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-right: 0.5rem;
+        margin-bottom: 0.5rem;
+        display: inline-block;
+      }
+
+      .ingredients-list {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+        margin-top: 1rem;
+      }
+
+      .online-status {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+      }
+
+      .status-online {
+        color: #28a745;
+      }
+
+      .status-offline {
+        color: #dc3545;
+      }
+
+      .loading-spinner {
+        text-align: center;
+        padding: 3rem;
+      }
+
+      .spinner-custom {
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(255, 255, 255, 0.3);
+        border-top: 5px solid white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: white;
+      }
+
+      .empty-state-icon {
+        font-size: 5rem;
+        margin-bottom: 1rem;
+      }
+
+      .offline-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .offline-card .cocktail-title {
+        color: white;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="online-status" id="onlineStatus">
+      <span id="statusIcon">🟢</span>
+      <span id="statusText">Online</span>
+    </div>
+
+    <header class="app-header">
+      <div class="container">
+        <h1 class="app-title text-center">Cocktail Finder</h1>
+        <p class="text-center text-muted mb-0">
+          Descubre los mejores cocktails del mundo
+        </p>
+      </div>
+    </header>
+
+    <div class="container">
+      <div class="search-container">
+        <form id="searchForm" class="search-box">
+          <div class="input-group">
+            <input
+              type="text"
+              class="form-control search-input"
+              id="searchInput"
+              placeholder="Busca: Margarita, Mojito, Vodka..."
+              required
+            />
+            <button class="btn btn-search" type="submit">Buscar</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="results"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Registrar Service Worker
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((reg) => console.log("Service Worker registrado", reg))
+          .catch((err) => console.log("Error al registrar SW", err));
+      }
+
+      // Estado de conexión
+      const statusIcon = document.getElementById("statusIcon");
+      const statusText = document.getElementById("statusText");
+      const onlineStatus = document.getElementById("onlineStatus");
+
+      function updateOnlineStatus() {
+        if (navigator.onLine) {
+          statusIcon.textContent = "●";
+          statusText.textContent = "Online";
+          onlineStatus.classList.remove("status-offline");
+          onlineStatus.classList.add("status-online");
+        } else {
+          statusIcon.textContent = "●";
+          statusText.textContent = "Offline";
+          onlineStatus.classList.remove("status-online");
+          onlineStatus.classList.add("status-offline");
+        }
+      }
+
+      window.addEventListener("online", updateOnlineStatus);
+      window.addEventListener("offline", updateOnlineStatus);
+      updateOnlineStatus();
+
+      // Búsqueda de cocktails
+      const searchForm = document.getElementById("searchForm");
+      const searchInput = document.getElementById("searchInput");
+      const results = document.getElementById("results");
+
+      searchForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const searchTerm = searchInput.value.trim();
+
+        if (!searchTerm) return;
+
+        results.innerHTML = `
+                <div class="loading-spinner">
+                    <div class="spinner-custom"></div>
+                    <p class="text-white mt-3 fs-5">Buscando cocktails...</p>
+                </div>
+            `;
+
+        try {
+          const response = await fetch(
+            `https://www.thecocktaildb.com/api/json/v1/1/search.php?s=${searchTerm}`
+          );
+
+          // El Service Worker siempre responde con 200, incluso offline
+          if (response.ok) {
+            const data = await response.json();
+
+            if (data.drinks && data.drinks.length > 0) {
+              displayCocktails(data.drinks);
+            } else {
+              results.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🥃</div>
+                                <h2>No se encontraron resultados</h2>
+                                <p>Intenta con otro nombre de cocktail</p>
+                            </div>
+                        `;
+            }
+          } else {
+            throw new Error("Network error");
+          }
+        } catch (error) {
+          console.error("Error:", error);
+          results.innerHTML = `
+                    <div class="empty-state">
+                        <h2>Error de conexión</h2>
+                        <p>No se pudo conectar con el servidor</p>
+                    </div>
+                `;
+        }
+      });
+
+      function displayCocktails(drinks) {
+        const html = drinks
+          .map((drink) => {
+            const ingredients = [];
+            for (let i = 1; i <= 15; i++) {
+              if (drink[`strIngredient${i}`]) {
+                const ingredient = drink[`strIngredient${i}`];
+                const measure = drink[`strMeasure${i}`] || "";
+                ingredients.push(`${measure} ${ingredient}`.trim());
+              }
+            }
+
+            return `
+                    <div class="col-md-6 col-lg-4">
+                        <div class="cocktail-card">
+                            <img src="${drink.strDrinkThumb}" alt="${
+              drink.strDrink
+            }" class="cocktail-img">
+                            <div class="cocktail-body">
+                                <h3 class="cocktail-title">${
+                                  drink.strDrink
+                                }</h3>
+                                <div class="mb-3">
+                                    <span class="badge-custom">${
+                                      drink.strCategory
+                                    }</span>
+                                    <span class="badge-custom">${
+                                      drink.strAlcoholic
+                                    }</span>
+                                    <span class="badge-custom">${
+                                      drink.strGlass
+                                    }</span>
+                                </div>
+                                <div class="ingredients-list">
+                                    <h5 class="mb-2">Ingredientes:</h5>
+                                    <ul class="mb-0">
+                                        ${ingredients
+                                          .map((ing) => `<li>${ing}</li>`)
+                                          .join("")}
+                                    </ul>
+                                </div>
+                                ${
+                                  drink.strInstructions
+                                    ? `
+                                    <div class="mt-3">
+                                        <h6><strong>Preparación:</strong></h6>
+                                        <p class="text-muted small">${drink.strInstructions}</p>
+                                    </div>
+                                `
+                                    : ""
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+          })
+          .join("");
+
+        results.innerHTML = `<div class="row">${html}</div>`;
+      }
+
+      results.innerHTML = `
+                <div class="empty-state">
+                    <h2>Busca tu Cocktail Favorito</h2>
+                    <p>Prueba con: Margarita, Mojito, Vodka, Daiquiri...</p>
+                </div>
+            `;
+    </script>
+  </body>
+</html>
